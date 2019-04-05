@@ -3,7 +3,7 @@
 
 * **[CellStyleBehavior.cs](./CS/CellStyle/CellStyleBehavior.cs) (VB: [CellStyleBehavior.vb](./VB/CellStyle/CellStyleBehavior.vb))**
 * [Data.cs](./CS/CellStyle/Data.cs) (VB: [Data.vb](./VB/CellStyle/Data.vb))
-* [MainWindow.xaml](./CS/CellStyle/MainWindow.xaml) (VB: [MainWindow.xaml.vb](./VB/CellStyle/MainWindow.xaml.vb))
+* [MainWindow.xaml](./CS/CellStyle/MainWindow.xaml) (VB: [MainWindow.xaml](./VB/CellStyle/MainWindow.xaml))
 * [MainWindow.xaml.cs](./CS/CellStyle/MainWindow.xaml.cs) (VB: [MainWindow.xaml.vb](./VB/CellStyle/MainWindow.xaml.vb))
 <!-- default file list end -->
 # How to use CellStyle in different themes
