@@ -7,68 +7,67 @@ using DevExpress.Xpf.Core;
 using System.Windows;
 using DevExpress.Xpf.Grid.Themes;
 using DevExpress.Mvvm.UI.Interactivity;
+using System.Windows.Data;
+using System.Reflection;
 
-namespace CellStyle
-{
-    public class CellStyleBehavior : Behavior<GridControl>
-    {
-        public static DependencyProperty CellStyleProperty = DependencyProperty.Register(
-            "CellStyle", typeof(Style), typeof(CellStyleBehavior),
-            new PropertyMetadata(new Style() { TargetType=typeof(LightweightCellEditor)}));
+namespace CellStyle {
+    public class CellStyleBehavior : Behavior<DependencyObject> {
+        public static DependencyProperty CellStyleProperty =
+            DependencyProperty.Register("CellStyle", typeof(Style), typeof(CellStyleBehavior), new PropertyMetadata((d, _) => ((CellStyleBehavior)d).UpdateStyle()));
+        public static readonly DependencyProperty ThemeNameProperty =
+            DependencyProperty.Register("ThemeName", typeof(string), typeof(CellStyleBehavior), new PropertyMetadata((d, _) => ((CellStyleBehavior)d).UpdateStyle()));
 
-        public Style CellStyle
-        {
+        public Style Style {
             get { return (Style)GetValue(CellStyleProperty); }
-            set
-            {
-                if (value.TargetType == typeof(LightweightCellEditor))
-                {
-                    SetValue(CellStyleProperty, value);
-                    ApplyStyleToGrid(ThemeManager.ApplicationThemeName);
-                }
-            }
+            set { SetValue(CellStyleProperty, value); }
+        }
+        public string ThemeName {
+            get { return (string)GetValue(ThemeNameProperty); }
+            set { SetValue(ThemeNameProperty, value); }
         }
 
-        GridControl grid;
-        protected override void OnAttached()
-        {
+        static PropertyInfo ThemeNameInfo = typeof(ThemeTreeWalker).GetProperty(nameof(ThemeTreeWalker.ThemeName));
+        protected override void OnAttached() {
             base.OnAttached();
-            try
-            {
-                grid = this.AssociatedObject as GridControl;
-                if (grid != null)
-                    ThemeManager.ThemeChanged += new ThemeChangedRoutedEventHandler(ThemeManager_ThemeChanged);
+            BindingOperations.SetBinding(this, ThemeNameProperty, new Binding { Path = new PropertyPath("(0).(1)", ThemeManager.TreeWalkerProperty, ThemeNameInfo), Source = AssociatedObject });
+            UpdateStyle();
+        }
+        protected override void OnDetaching() {
+            BindingOperations.ClearBinding(this, ThemeNameProperty);
+            base.OnDetaching();
+        }
+
+        protected virtual void UpdateStyle() {
+            if (AssociatedObject == null)
+                return;
+            if (Style == null) {
+                UpdateStyle(null);
+                return;
             }
-            finally { }
+            Style style = CopyStyle(Style);
+            style.BasedOn = GetThemeStyle(new GridRowThemeKeyExtension { ResourceKey = GridRowThemeKeys.LightweightCellStyle, ThemeName = ThemeName == "DeepBlue" ? null : ThemeName });
+            UpdateStyle(style);
         }
-
-        private Style CopyStyle(Style originalStyle)
-        {
-            Style copiedStyle = new Style();
-            copiedStyle.TargetType = originalStyle.TargetType;
-
-            foreach (var elem in originalStyle.Setters)
-                copiedStyle.Setters.Add(elem);
-
-            foreach (var elem in originalStyle.Triggers)
-                copiedStyle.Triggers.Add(elem);
-            return copiedStyle;
+        protected virtual void UpdateStyle(Style newValue) {
+            if (AssociatedObject is DataViewBase view)
+                view.CellStyle = newValue;
+            else if (AssociatedObject is GridColumn column)
+                column.CellStyle = newValue;
         }
-
-        private void ApplyStyleToGrid(string themeName)
-        {
-            GridRowThemeKeyExtension newKey = new GridRowThemeKeyExtension();
-            newKey.ResourceKey = GridRowThemeKeys.LightweightCellStyle;
-            if (themeName != "DeepBlue")
-                newKey.ThemeName = themeName;
-            Style currStyle = CopyStyle(CellStyle);
-            currStyle.BasedOn = Window.GetWindow(grid).FindResource(newKey) as Style;
-            grid.View.CellStyle = currStyle;
+        protected virtual Style GetThemeStyle(object key) {
+            if (AssociatedObject is FrameworkElement fe)
+                return fe.TryFindResource(key) as Style;
+            else if (AssociatedObject is FrameworkContentElement fce)
+                return fce.TryFindResource(key) as Style;
+            return null;
         }
-
-        void ThemeManager_ThemeChanged(DependencyObject sender, ThemeChangedRoutedEventArgs e)
-        {
-            ApplyStyleToGrid(e.ThemeName);
+        protected static Style CopyStyle(Style style) {
+            Style copy = new Style(style.TargetType);
+            foreach (var elem in style.Setters)
+                copy.Setters.Add(elem);
+            foreach (var elem in style.Triggers)
+                copy.Triggers.Add(elem);
+            return copy;
         }
     }
 }
