@@ -10,40 +10,33 @@ using DevExpress.Mvvm.UI.Interactivity;
 
 namespace CellStyle
 {
-    public class CellStyleBehavior : Behavior<GridControl>
-    {
-        public static DependencyProperty CellStyleProperty = DependencyProperty.Register(
-            "CellStyle", typeof(Style), typeof(CellStyleBehavior),
-            new PropertyMetadata(new Style() { TargetType=typeof(LightweightCellEditor)}));
+    public class CellStyleBehavior : Behavior<TableView> {
+        public static DependencyProperty CellStyleProperty =
+            DependencyProperty.Register("CellStyle", typeof(Style), typeof(CellStyleBehavior), new PropertyMetadata());
 
-        public Style CellStyle
-        {
+        public Style CellStyle {
             get { return (Style)GetValue(CellStyleProperty); }
-            set
-            {
-                if (value.TargetType == typeof(LightweightCellEditor))
-                {
+            set {
+                if (value.TargetType == typeof(LightweightCellEditor)) {
                     SetValue(CellStyleProperty, value);
                     ApplyStyleToGrid(ThemeManager.ApplicationThemeName);
                 }
             }
         }
 
-        GridControl grid;
-        protected override void OnAttached()
-        {
+        protected TableView View { get { return AssociatedObject; } }
+
+        protected override void OnAttached() {
             base.OnAttached();
-            try
-            {
-                grid = this.AssociatedObject as GridControl;
-                if (grid != null)
-                    ThemeManager.ThemeChanged += new ThemeChangedRoutedEventHandler(ThemeManager_ThemeChanged);
-            }
-            finally { }
+            ApplyStyleToGrid(ThemeManager.ApplicationThemeName);
+            ThemeManager.ThemeChanged += ThemeChanged;
+        }
+        protected override void OnDetaching() {
+            ThemeManager.ThemeChanged -= ThemeChanged;
+            base.OnDetaching();
         }
 
-        private Style CopyStyle(Style originalStyle)
-        {
+        private Style CopyStyle(Style originalStyle) {
             Style copiedStyle = new Style();
             copiedStyle.TargetType = originalStyle.TargetType;
 
@@ -55,19 +48,21 @@ namespace CellStyle
             return copiedStyle;
         }
 
-        private void ApplyStyleToGrid(string themeName)
-        {
+        private void ApplyStyleToGrid(string themeName) {
+            if (CellStyle == null) {
+                View.CellStyle = null;
+                return;
+            }
             GridRowThemeKeyExtension newKey = new GridRowThemeKeyExtension();
             newKey.ResourceKey = GridRowThemeKeys.LightweightCellStyle;
             if (themeName != "DeepBlue")
                 newKey.ThemeName = themeName;
             Style currStyle = CopyStyle(CellStyle);
-            currStyle.BasedOn = Window.GetWindow(grid).FindResource(newKey) as Style;
-            grid.View.CellStyle = currStyle;
+            currStyle.BasedOn = View.TryFindResource(newKey) as Style;
+            View.CellStyle = currStyle;
         }
 
-        void ThemeManager_ThemeChanged(DependencyObject sender, ThemeChangedRoutedEventArgs e)
-        {
+        protected virtual void ThemeChanged(DependencyObject sender, ThemeChangedRoutedEventArgs e) {
             ApplyStyleToGrid(e.ThemeName);
         }
     }
