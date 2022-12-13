@@ -24,11 +24,13 @@
         <dxg:GridControl Grid.Row="1"
                          Name="grid1"
                          AutoGenerateColumns="AddNew">
-            <dxmvvm:Interaction.Behaviors>
-                <local:CellStyleBehavior CellStyle="{StaticResource cellStyle}" />
-            </dxmvvm:Interaction.Behaviors>
+            
             <dxg:GridControl.View>
-                <dxg:TableView x:Name="view" />
+                <dxg:TableView x:Name="view">
+                    <dxmvvm:Interaction.Behaviors>
+                        <local:CellStyleBehavior CellStyle="{StaticResource cellStyle}" />
+                    </dxmvvm:Interaction.Behaviors>
+                </dxg:TableView>
             </dxg:GridControl.View>
         </dxg:GridControl>
         <ComboBox Name="themesComboBox"
