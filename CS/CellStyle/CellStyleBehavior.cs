@@ -51,7 +51,7 @@ namespace CellStyle {
         protected virtual void UpdateStyle(Style newValue) {
             if (AssociatedObject is DataViewBase view)
                 view.CellStyle = newValue;
-            else if (AssociatedObject is GridColumn column)
+            else if (AssociatedObject is ColumnBase column)
                 column.CellStyle = newValue;
         }
         protected virtual Style GetThemeStyle(object key) {
