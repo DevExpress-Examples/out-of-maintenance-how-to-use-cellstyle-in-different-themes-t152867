@@ -62,10 +62,10 @@ Namespace CellStyle
         End Sub
 
         Protected Overridable Sub UpdateStyle(ByVal newValue As Style)
-            Dim view As DataViewBase = Nothing, column As GridColumn = Nothing
+            Dim view As DataViewBase = Nothing, column As ColumnBase = Nothing
             If CSharpImpl.__Assign(view, TryCast(AssociatedObject, DataViewBase)) IsNot Nothing Then
                 view.CellStyle = newValue
-            ElseIf CSharpImpl.__Assign(column, TryCast(AssociatedObject, GridColumn)) IsNot Nothing Then
+            ElseIf CSharpImpl.__Assign(column, TryCast(AssociatedObject, ColumnBase)) IsNot Nothing Then
                 column.CellStyle = newValue
             End If
         End Sub
